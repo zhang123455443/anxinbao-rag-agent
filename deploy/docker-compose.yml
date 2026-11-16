@@ -119,6 +119,49 @@ services:
     networks:
       - insurance-net
 
+  agent-service:
+    build:
+      context: ../agent-service
+    container_name: hm-agent-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      milvus:
+        condition: service_started
+      biz-service:
+        condition: service_healthy
+    environment:
+      LOG_LEVEL: INFO
+      LOG_FORMAT: console
+      DATABASE_URL: postgresql://insurance:insurance123@postgres:5432/insurance_agent
+      BUSINESS_DATABASE_URL: postgresql://insurance:insurance123@postgres:5432/insurance_biz
+      MILVUS_HOST: milvus
+      MILVUS_PORT: 19530
+      MILVUS_COLLECTION: insurance_knowledge_chunks
+      BUSINESS_SERVICE_URL: http://biz-service:8001
+      JWT_ISSUER: hm-insurance
+      JWT_SECRET: change-me-in-dev
+      JWT_ACCESS_TOKEN_MINUTES: 15
+      JWT_REFRESH_TOKEN_DAYS: 7
+      SERVICE_API_KEY: change-me-service-api-key
+      DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
+      DEEPSEEK_BASE_URL: https://api.deepseek.com
+      CHAT_MODEL: deepseek-chat
+      CHAT_TEMPERATURE: 0.2
+      EMBEDDING_MODEL: BAAI/bge-m3
+      EMBEDDING_DEVICE: cpu
+      EMBEDDING_MAX_LENGTH: 8192
+      RERANK_MODEL: BAAI/bge-reranker-v2-m3
+      RERANK_DEVICE: cpu
+      RERANK_MAX_LENGTH: 512
+      RAG_CANDIDATE_K: 50
+      RAG_AUTO_FULL_MIN_SAME_PARENT_HITS: 2
+    ports:
+      - "8002:8002"
+    restart: unless-stopped
+    networks:
+      - insurance-net
+
   frontend:
     image: nginx:alpine
     container_name: hm-frontend
@@ -126,6 +169,8 @@ services:
     depends_on:
       biz-service:
         condition: service_healthy
+      agent-service:
+        condition: service_started
     volumes:
       - ../frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - ../frontend/dist:/usr/share/nginx/html:ro

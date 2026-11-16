@@ -12,7 +12,6 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY app ./app
 COPY scripts ./scripts
-COPY config.yaml ./config.yaml
 COPY schema.sql ./schema.sql
 
 EXPOSE 8002
