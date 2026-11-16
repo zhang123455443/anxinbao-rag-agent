@@ -1,0 +1,13 @@
+.venv/
+.uv-cache/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.env
+.env.prod
+.env.vm.example
+.idea/
+.jbeval/
+notebook/
+tests/
