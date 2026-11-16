@@ -156,6 +156,7 @@ services:
       RERANK_MAX_LENGTH: 512
       RAG_CANDIDATE_K: 50
       RAG_AUTO_FULL_MIN_SAME_PARENT_HITS: 2
+      HF_ENDPOINT: https://hf-mirror.com
     ports:
       - "8002:8002"
     restart: unless-stopped
