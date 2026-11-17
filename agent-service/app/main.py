@@ -48,18 +48,12 @@ async def lifespan(app: FastAPI):
         app.state.chat_thread_repository = ChatThreadRepository(database.pool)
         # 初始化模型
         llms = LLMProvider.create(settings)
-        # 初始化RAG工具，失败则跳过（模型未下载时不阻塞启动）
-        rag = None
-        search_tool = None
-        try:
-            rag = await create_rag_components(
-                settings,
-                database.pool,
-            )
-            app.state.rag = rag
-            search_tool = rag.search_tool
-        except Exception:
-            logger.warning("rag_components_failed_starting_without_rag")
+        # 初始化RAG工具，Markdown 优化节点复用应用启动时创建的 DeepSeek 模型。
+        rag = await create_rag_components(
+            settings,
+            database.pool,
+        )
+        app.state.rag = rag
         # 初始化业务端工具
         business_client = BusinessServiceClient(settings.business_service_url)
         # 初始化工作流
@@ -70,7 +64,7 @@ async def lifespan(app: FastAPI):
             intent_router=intent_router,
             llms=llms,
             business_client=business_client,
-            search_tool=search_tool,
+            search_tool=rag.search_tool,
             workflows=workflows,
             checkpointer=checkpointer,
         )
