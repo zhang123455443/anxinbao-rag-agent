@@ -157,6 +157,8 @@ services:
       RAG_CANDIDATE_K: 50
       RAG_AUTO_FULL_MIN_SAME_PARENT_HITS: 2
       HF_ENDPOINT: https://hf-mirror.com
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
     volumes:
       - /root/.cache/huggingface:/root/.cache/huggingface
     ports:
