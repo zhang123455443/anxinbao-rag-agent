@@ -192,6 +192,8 @@ class ChatOrchestrator:
                 if method == 'messages':
                     data = event['params']['data'][0]
                     if isinstance(data, AIMessage):
+                        if data.tool_calls or data.additional_kwargs.get("tool_calls"):
+                            continue
                         for chunk in data.content:
                             yield {
                                 "event": "message",
