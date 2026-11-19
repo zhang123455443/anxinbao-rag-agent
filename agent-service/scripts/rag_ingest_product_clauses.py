@@ -29,6 +29,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         help="Drop only RAG tables and the configured Milvus collection before ingesting.",
     )
     parser.add_argument("--continue-on-error", action="store_true")
+    parser.add_argument(
+        "--clause-ids",
+        type=str,
+        default=None,
+        help="Comma-separated clause IDs to ingest only.",
+    )
     return parser.parse_args(argv)
 
 
@@ -39,6 +45,9 @@ async def run(args: argparse.Namespace) -> dict[str, Any]:
 
     # 先读取业务数据并校验全部文件，避免清空知识库后才发现源文件缺失。
     requests = await load_requests(settings.business_database_url)
+    if args.clause_ids:
+        wanted = {int(x.strip()) for x in args.clause_ids.split(",") if x.strip()}
+        requests = [r for r in requests if r.clause_id in wanted]
     agent_pool = await create_pool(settings)
     try:
         # 模型和外部客户端先初始化；初始化失败时不会破坏已有知识库。

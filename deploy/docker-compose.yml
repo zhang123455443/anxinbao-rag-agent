@@ -146,6 +146,7 @@ services:
       SERVICE_API_KEY: change-me-service-api-key
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY:-}
       DEEPSEEK_BASE_URL: https://api.deepseek.com
+      MINERU_TOKEN: ${MINERU_TOKEN:-}
       CHAT_MODEL: deepseek-chat
       CHAT_TEMPERATURE: 0.2
       EMBEDDING_MODEL: BAAI/bge-m3
@@ -153,14 +154,16 @@ services:
       EMBEDDING_MAX_LENGTH: 8192
       RERANK_MODEL: BAAI/bge-reranker-v2-m3
       RERANK_DEVICE: cpu
-      RERANK_MAX_LENGTH: 512
-      RAG_CANDIDATE_K: 50
+      RERANK_MAX_LENGTH: ${RERANK_MAX_LENGTH:-512}
+      RAG_CANDIDATE_K: ${RAG_CANDIDATE_K:-50}
       RAG_AUTO_FULL_MIN_SAME_PARENT_HITS: 2
       HF_ENDPOINT: https://hf-mirror.com
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
     volumes:
       - /root/.cache/huggingface:/root/.cache/huggingface
+      - ../data:/app/data:ro
+      - ../data:/data:ro
     ports:
       - "8002:8002"
     restart: unless-stopped

@@ -7,6 +7,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from app.core.logging import get_logger
 from app.rag.models import (
     DocumentStatus,
     DocumentType,
@@ -21,6 +22,9 @@ from app.rag.protocols import (
     Parser,
     VectorStore,
 )
+
+
+logger = get_logger(__name__)
 
 
 class KnowledgeBuildRequest(BaseModel):
@@ -79,8 +83,12 @@ class KnowledgeBuildPipeline:
         # 2. 先解析PDF文档为Markdown
         markdown = self.parser.parse(request.source_uri, request.parse_options)
 
-        # 3. 使用 DeepSeek 修复 PDF 表格导致的 Markdown 结构和标题编号错乱。
-        markdown = await self.markdown_optimizer.optimize(markdown)
+        # 3. 使用 DeepSeek 修复 Markdown 结构和标题编号错乱；
+        #    优化被云端风控拦截等失败时，降级使用解析出的原始 Markdown，不阻断入库。
+        try:
+            markdown = await self.markdown_optimizer.optimize(markdown)
+        except Exception as exc:
+            logger.warning("markdown_optimizer_fallback_raw", error=str(exc), clause_id=request.clause_id)
 
         # 4.对文档切片，分为父块和子块
         chunks = self.chunker.chunk(
